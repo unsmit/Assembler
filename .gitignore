@@ -1,0 +1,31 @@
+# Compiled object files
+*.o
+*.obj
+
+# Executables
+assembler
+*.out
+*.exe
+
+# Build directories
+build/
+bin/
+
+# Debug files
+*.dSYM/
+*.dSYM
+
+# macOS
+.DS_Store
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Generated assembler output
+*.bin
