@@ -29,3 +29,4 @@ bin/
 
 # Generated assembler output
 *.bin
+.DS_Store
