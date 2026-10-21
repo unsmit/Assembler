@@ -1,0 +1,320 @@
+AARCH64 / A64 INSTRUCTION FORMS
+
+Plain-ASCII reference for assembler development.
+
+IMPORTANT
+
+A64 is a very large and extensible ISA. The same mnemonic can have
+several instruction forms/encodings. This file lists the
+base/general-purpose A64 mnemonics and the major FP/SIMD families you
+are likely to encounter. Newer architecture extensions (SVE, SVE2, SME,
+crypto, MTE, PAUTH, atomics, etc.) add many more forms.
+
+Operand notation: Xd, Xn, Xm, Xa, Xt = 64-bit general-purpose registers
+Wd, Wn, Wm, Wa, Wt = 32-bit general-purpose registers Vd, Vn, Vm =
+SIMD/vector registers Sd, Sn, Sm = 32-bit FP registers Dd, Dn, Dm =
+64-bit FP registers #imm = immediate label = symbol/label cond =
+condition code [Xn, …] = memory address based on Xn
+
+INTEGER ARITHMETIC
+
+ADC Xd, Xn, Xm ADCS Xd, Xn, Xm
+
+ADD Xd, Xn, Xm ADD Xd, Xn, Xm, LSL #imm ADD Xd, Xn, Xm, LSR #imm ADD Xd,
+Xn, Xm, ASR #imm ADD Xd, Xn, #imm ADD Xd, Xn, #imm, LSL #12
+
+ADDS Xd, Xn, Xm ADDS Xd, Xn, Xm, shift #imm ADDS Xd, Xn, #imm ADDS Xd,
+Xn, #imm, LSL #12
+
+SUB Xd, Xn, Xm SUB Xd, Xn, Xm, shift #imm SUB Xd, Xn, #imm SUB Xd, Xn,
+#imm, LSL #12
+
+SUBS Xd, Xn, Xm SUBS Xd, Xn, Xm, shift #imm SUBS Xd, Xn, #imm SUBS Xd,
+Xn, #imm, LSL #12
+
+SBC Xd, Xn, Xm SBCS Xd, Xn, Xm
+
+MADD Xd, Xn, Xm, Xa MSUB Xd, Xn, Xm, Xa MUL Xd, Xn, Xm MNEG Xd, Xn, Xm
+
+SMADDL Xd, Wn, Wm, Xa SMSUBL Xd, Wn, Wm, Xa SMULL Xd, Wn, Wm SMNEGL Xd,
+Wn, Wm SMULH Xd, Xn, Xm
+
+UMADDL Xd, Wn, Wm, Xa UMSUBL Xd, Wn, Wm, Xa UMULL Xd, Wn, Wm UMNEGL Xd,
+Wn, Wm UMULH Xd, Xn, Xm
+
+SDIV Xd, Xn, Xm UDIV Xd, Xn, Xm
+
+NEG Xd, Xm NEGS Xd, Xm NGC Xd, Xm NGCS Xd, Xm
+
+LOGICAL / BITWISE
+
+AND Xd, Xn, Xm AND Xd, Xn, Xm, shift #imm AND Xd, Xn, #logical_imm
+
+ANDS Xd, Xn, Xm ANDS Xd, Xn, Xm, shift #imm ANDS Xd, Xn, #logical_imm
+
+BIC Xd, Xn, Xm BICS Xd, Xn, Xm
+
+EOR Xd, Xn, Xm EOR Xd, Xn, Xm, shift #imm EOR Xd, Xn, #logical_imm
+
+EON Xd, Xn, Xm
+
+ORR Xd, Xn, Xm ORR Xd, Xn, Xm, shift #imm ORR Xd, Xn, #logical_imm
+
+ORN Xd, Xn, Xm MVN Xd, Xm TST Xn, Xm TST Xn, #logical_imm
+
+SHIFT / ROTATE
+
+ASR Xd, Xn, #imm ASR Xd, Xn, Xm ASRV Xd, Xn, Xm
+
+LSL Xd, Xn, #imm LSL Xd, Xn, Xm LSLV Xd, Xn, Xm
+
+LSR Xd, Xn, #imm LSR Xd, Xn, Xm LSRV Xd, Xn, Xm
+
+ROR Xd, Xn, #imm ROR Xd, Xn, Xm RORV Xd, Xn, Xm
+
+MOVE / CONSTANT GENERATION
+
+MOV Xd, Xm MOV Xd, #imm MOV Xd, SP MOV SP, Xn
+
+MOVK Xd, #imm16 MOVK Xd, #imm16, LSL #16 MOVK Xd, #imm16, LSL #32 MOVK
+Xd, #imm16, LSL #48
+
+MOVN Xd, #imm16 [, LSL #shift] MOVZ Xd, #imm16 [, LSL #shift]
+
+COMPARE / CONDITIONAL SELECT
+
+CMP Xn, Xm CMP Xn, Xm, shift #imm CMP Xn, #imm
+
+CMN Xn, Xm CMN Xn, #imm
+
+CCMN Xn, Xm, #nzcv, cond CCMN Xn, #imm, #nzcv, cond CCMP Xn, Xm, #nzcv,
+cond CCMP Xn, #imm, #nzcv, cond
+
+CSEL Xd, Xn, Xm, cond CSINC Xd, Xn, Xm, cond CSINV Xd, Xn, Xm, cond
+CSNEG Xd, Xn, Xm, cond
+
+CSET Xd, cond CSETM Xd, cond CINC Xd, Xn, cond CINV Xd, Xn, cond CNEG
+Xd, Xn, cond
+
+BRANCH / CONTROL FLOW
+
+B label B.cond label BL label BR Xn BLR Xn RET RET Xn
+
+CBZ Xn, label CBZ Wn, label CBNZ Xn, label CBNZ Wn, label
+
+TBZ Xn, #bit, label TBNZ Xn, #bit, label
+
+Condition codes: EQ NE CS HS CC LO MI PL VS VC HI LS GE LT GT LE AL
+
+ADDRESS GENERATION
+
+ADR Xd, label ADRP Xd, label
+
+LOAD / STORE - GENERAL PURPOSE
+
+LDR Xt, [Xn] LDR Xt, [Xn, #imm] LDR Xt, [Xn, #imm]! LDR Xt, [Xn], #imm
+LDR Xt, [Xn, Xm] LDR Xt, label
+
+STR Xt, [Xn] STR Xt, [Xn, #imm] STR Xt, [Xn, #imm]! STR Xt, [Xn], #imm
+STR Xt, [Xn, Xm]
+
+LDUR Xt, [Xn, #simm] STUR Xt, [Xn, #simm]
+
+LDRB Wt, [Xn, …] STRB Wt, [Xn, …] LDURB Wt, [Xn, #simm] STURB Wt, [Xn,
+#simm]
+
+LDRH Wt, [Xn, …] STRH Wt, [Xn, …] LDURH Wt, [Xn, #simm] STURH Wt, [Xn,
+#simm]
+
+LDRSB Wt, [Xn, …] LDRSB Xt, [Xn, …] LDURSB Wt, [Xn, #simm] LDURSB Xt,
+[Xn, #simm]
+
+LDRSH Wt, [Xn, …] LDRSH Xt, [Xn, …] LDURSH Wt, [Xn, #simm] LDURSH Xt,
+[Xn, #simm]
+
+LDRSW Xt, [Xn, …] LDURSW Xt, [Xn, #simm]
+
+LDP Xt1, Xt2, [Xn] LDP Xt1, Xt2, [Xn, #imm] LDP Xt1, Xt2, [Xn, #imm]!
+LDP Xt1, Xt2, [Xn], #imm
+
+STP Xt1, Xt2, [Xn] STP Xt1, Xt2, [Xn, #imm] STP Xt1, Xt2, [Xn, #imm]!
+STP Xt1, Xt2, [Xn], #imm
+
+LDPSW Xt1, Xt2, [Xn, …] LDNP Xt1, Xt2, [Xn, #imm] STNP Xt1, Xt2, [Xn,
+#imm]
+
+PRFM operation, [Xn, …] PRFM operation, label PRFUM operation, [Xn,
+#simm]
+
+EXCLUSIVE / ACQUIRE / RELEASE
+
+LDXR Xt, [Xn] LDXRB Wt, [Xn] LDXRH Wt, [Xn] LDXP Xt1, Xt2, [Xn]
+
+LDAXR Xt, [Xn] LDAXRB Wt, [Xn] LDAXRH Wt, [Xn] LDAXP Xt1, Xt2, [Xn]
+
+STXR Ws, Xt, [Xn] STXRB Ws, Wt, [Xn] STXRH Ws, Wt, [Xn] STXP Ws, Xt1,
+Xt2, [Xn]
+
+STLXR Ws, Xt, [Xn] STLXRB Ws, Wt, [Xn] STLXRH Ws, Wt, [Xn] STLXP Ws,
+Xt1, Xt2, [Xn]
+
+LDAR Xt, [Xn] LDARB Wt, [Xn] LDARH Wt, [Xn]
+
+STLR Xt, [Xn] STLRB Wt, [Xn] STLRH Wt, [Xn]
+
+BITFIELD / EXTRACT / EXTEND
+
+BFM Xd, Xn, #immr, #imms SBFM Xd, Xn, #immr, #imms UBFM Xd, Xn, #immr,
+#imms EXTR Xd, Xn, Xm, #lsb
+
+BFI Xd, Xn, #lsb, #width BFXIL Xd, Xn, #lsb, #width SBFX Xd, Xn, #lsb,
+#width SBFIZ Xd, Xn, #lsb, #width UBFX Xd, Xn, #lsb, #width UBFIZ Xd,
+Xn, #lsb, #width
+
+SXTB Xd, Wn SXTH Xd, Wn SXTW Xd, Wn UXTB Wd, Wn UXTH Wd, Wn
+
+BIT / BYTE OPERATIONS
+
+CLZ Xd, Xn CLS Xd, Xn RBIT Xd, Xn REV Xd, Xn REV16 Xd, Xn REV32 Xd, Xn
+
+SYSTEM / HINT / EXCEPTION
+
+NOP YIELD WFE WFI SEV SEVL HINT #imm SVC #imm16 HVC #imm16 SMC #imm16
+BRK #imm16 HLT #imm16 ERET
+
+MRS Xt, system_register MSR system_register, Xt MSR pstate_field, #imm
+
+DMB option DSB option ISB option
+
+SYS #op1, Cn, Cm, #op2 [, Xt] SYSL Xt, #op1, Cn, Cm, #op2 DC operation,
+Xt IC operation [, Xt] AT operation, Xt TLBI operation [, Xt]
+
+COMMON FLOATING-POINT SCALAR
+
+FADD Sd, Sn, Sm FADD Dd, Dn, Dm FSUB Sd, Sn, Sm FSUB Dd, Dn, Dm FMUL Sd,
+Sn, Sm FMUL Dd, Dn, Dm FDIV Sd, Sn, Sm FDIV Dd, Dn, Dm
+
+FMADD Sd, Sn, Sm, Sa FMADD Dd, Dn, Dm, Da FMSUB Sd, Sn, Sm, Sa FMSUB Dd,
+Dn, Dm, Da FNMADD Sd, Sn, Sm, Sa FNMADD Dd, Dn, Dm, Da FNMSUB Sd, Sn,
+Sm, Sa FNMSUB Dd, Dn, Dm, Da
+
+FABS Sd, Sn FABS Dd, Dn FNEG Sd, Sn FNEG Dd, Dn FSQRT Sd, Sn FSQRT Dd,
+Dn
+
+FCMP Sn, Sm FCMP Dn, Dm FCMP Sn, #0.0 FCMP Dn, #0.0 FCMPE Sn, Sm FCMPE
+Dn, Dm
+
+FCSEL Sd, Sn, Sm, cond FCSEL Dd, Dn, Dm, cond
+
+FMOV Sd, Sn FMOV Dd, Dn FMOV Sd, #imm FMOV Dd, #imm FMOV Wd, Sn FMOV Xd,
+Dn FMOV Sd, Wn FMOV Dd, Xn
+
+FCVT Sd, Dn FCVT Dd, Sn SCVTF Sd/Dd, Wn/Xn UCVTF Sd/Dd, Wn/Xn FCVTZS
+Wd/Xd, Sn/Dn FCVTZU Wd/Xd, Sn/Dn FRINTA Sd/Dd, Sn/Dn FRINTI Sd/Dd, Sn/Dn
+FRINTM Sd/Dd, Sn/Dn FRINTN Sd/Dd, Sn/Dn FRINTP Sd/Dd, Sn/Dn FRINTX
+Sd/Dd, Sn/Dn FRINTZ Sd/Dd, Sn/Dn
+
+COMMON ADVANCED SIMD / NEON MNEMONIC FAMILIES
+
+ABS, ADD, ADDHN, ADDHN2, ADDP, ADDV AND, BIC, BIF, BIT, BSL CMEQ, CMGE,
+CMGT, CMHI, CMHS, CMLE, CMLT, CMTST CNT, DUP, EOR, EXT FABS, FADD,
+FADDP, FCMEQ, FCMGE, FCMGT, FCMLE, FCMLT FCVT, FCVTL, FCVTL2, FCVTN,
+FCVTN2 FDIV, FMAX, FMAXNM, FMAXNMP, FMAXNMV, FMAXP, FMAXV FMIN, FMINNM,
+FMINNMP, FMINNMV, FMINP, FMINV FMLA, FMLS, FMUL, FNEG, FRECPE, FRECPS,
+FRSQRTE, FRSQRTS, FSQRT, FSUB INS, LD1, LD1R, LD2, LD2R, LD3, LD3R, LD4,
+LD4R MLA, MLS, MOV, MOVI, MUL, MVN NEG, NOT, ORN, ORR PMUL, PMULL,
+PMULL2 RBIT, REV16, REV32, REV64 SABA, SABAL, SABAL2, SABD, SABDL,
+SABDL2 SADALP, SADDL, SADDL2, SADDLP, SADDLV SHADD, SHL, SHRN, SHRN2,
+SHSUB SLI, SMAX, SMAXP, SMAXV, SMIN, SMINP, SMINV SMLAL, SMLAL2, SMLSL,
+SMLSL2, SMOV, SMULL, SMULL2 SQABS, SQADD, SQDMULH, SQRDMULH, SQNEG,
+SQSHL, SQSHRN, SQSHRUN, SQSUB SRI, SRSHL, SRSHR, SRSRA, SSHL, SSHLL,
+SSHLL2, SSHR, SSRA ST1, ST2, ST3, ST4, SUB, SUBHN, SUBHN2, SUQADD TRN1,
+TRN2 UABA, UABAL, UABAL2, UABD, UABDL, UABDL2 UADALP, UADDL, UADDL2,
+UADDLP, UADDLV UHADD, UHSUB, UMAX, UMAXP, UMAXV, UMIN, UMINP, UMINV
+UMLAL, UMLAL2, UMLSL, UMLSL2, UMOV, UMULL, UMULL2 UQADD, UQSHL, UQSHRN,
+UQSUB URSHL, URSHR, URSRA, USHL, USHLL, USHLL2, USHR, USQADD, USRA UZP1,
+UZP2, XTN, XTN2, ZIP1, ZIP2
+
+Vector syntax commonly looks like: ADD Vd.4S, Vn.4S, Vm.4S FADD Vd.2D,
+Vn.2D, Vm.2D LD1 {Vt.16B}, [Xn] ST1 {Vt.16B}, [Xn]
+
+============================================================ IMPORTANT
+ENCODING CLASSES FOR YOUR ASSEMBLER
+============================================================
+
+A64 instructions are ALWAYS 32 bits, but A64 does not use one universal
+R-type / I-type / D-type scheme.
+
+1. ADD/SUB SHIFTED REGISTER (“R-TYPE-LIKE”)
+
+Bits: 31 30 29 28-24 23-22 21 20-16 15-10 9-5 4-0 sf op S 01011 shift 0
+Rm imm6 Rn Rd
+
+Widths: sf=1, op=1, S=1, fixed=5, shift=2, fixed=1, Rm=5, imm6=6, Rn=5,
+Rd=5
+
+2. ADD/SUB IMMEDIATE (“I-TYPE-LIKE”)
+
+Bits: 31 30 29 28-24 23 22 21-10 9-5 4-0 sf op S 10001 0 sh imm12 Rn Rd
+
+Widths: sf=1, op=1, S=1, fixed=5, fixed=1, sh=1, imm12=12, Rn=5, Rd=5
+
+3. LOAD/STORE UNSIGNED IMMEDIATE (“D-TYPE-LIKE”)
+
+Bits: 31-30 29-27 26 25-24 23-22 21-10 9-5 4-0 size 111 V 01 opc imm12
+Rn Rt
+
+Widths: size=2, fixed=3, V=1, fixed=2, opc=2, imm12=12, Rn=5, Rt=5
+
+NOTE: This is only ONE load/store layout. Pre-indexed, post-indexed,
+unscaled, register-offset, literal, pair, exclusive and atomic forms use
+other layouts.
+
+4. UNCONDITIONAL BRANCH IMMEDIATE
+
+B / BL: 31-26 25-0 opcode imm26
+
+Widths: opcode=6, imm26=26
+
+5. CONDITIONAL BRANCH
+
+B.cond: 31-24 23-5 4 3-0 fixed/op imm19 0 cond
+
+Widths: fixed/op=8, imm19=19, fixed=1, cond=4
+
+6. COMPARE AND BRANCH
+
+CBZ / CBNZ: 31 30-25 24 23-5 4-0 sf fixed op imm19 Rt
+
+Widths: sf=1, fixed=6, op=1, imm19=19, Rt=5
+
+7. TEST AND BRANCH
+
+TBZ / TBNZ: 31 30-25 24 23-19 18-5 4-0 b5 fixed op b40 imm14 Rt
+
+8. MOVE WIDE IMMEDIATE
+
+MOVN / MOVZ / MOVK: 31 30-29 28-23 22-21 20-5 4-0 sf opc 100101 hw imm16
+Rd
+
+9. PC-RELATIVE ADDRESS
+
+ADR / ADRP: 31 30-29 28-24 23-5 4-0 op immlo 10000 immhi Rd
+
+FINAL NOTE
+
+For an assembler, do not model an A64 mnemonic as: mnemonic -> one
+opcode
+
+Model it closer to: mnemonic -> list of legal encoding forms
+
+Example: ADD -> shifted-register form -> extended-register form ->
+immediate form
+
+Your parser identifies the mnemonic and operands. Operand validation
+selects the legal form. The encoder then writes that form’s 32-bit
+fields.
+
+For a literally exhaustive list covering every optional A64 architecture
+extension and every encoding variant, use Arm’s current Architecture
+Reference Manual / Machine Readable Specification (Instructions.json).

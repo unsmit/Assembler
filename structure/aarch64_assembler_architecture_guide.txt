@@ -1,0 +1,256 @@
+AArch64 ASSEMBLER - COMPONENT RESPONSIBILITIES
+
+BIG PICTURE
+
+Assembly source -> Lexer -> Parser -> Instruction matcher / validator ->
+Encoder -> machine code
+
+The rule to remember: Lexer understands CHARACTERS. Parser understands
+SYNTAX. Validator understands AArch64 RULES. Encoder understands BITS.
+Assembler coordinates the WHOLE PROCESS.
+
+1.  TOKEN / TokenType File: include/token.h
+
+A Token is data describing one thing the lexer found.
+
+For: ADD X1, X2, #10
+
+the lexer may find: ADD X1 , X2 , # 10
+
+Each becomes a Token.
+
+A token should remember: - its TokenType - its original text - source
+line - source column
+
+TokenType describes categories such as: Identifier Number Comma Hash
+LeftBracket RightBracket Exclamation Colon Newline End
+
+Do NOT make Identifier, Number, Comma, etc. separate classes. They are
+all Token objects with different TokenType values.
+
+2.  LEXER Files: include/lexer.h src/lexer.cpp
+
+Question it answers: “What pieces of text are in this source?”
+
+Input: source string
+
+Output: vector
+
+The lexer scans characters. It recognizes identifiers, numbers,
+punctuation, newlines, comments, and end-of-input. It normally skips
+spaces and tabs.
+
+For: LDR X1, [X2, #16]!
+
+it might produce: Identifier(“LDR”) Identifier(“X1”) Comma LeftBracket
+Identifier(“X2”) Comma Hash Number(“16”) RightBracket Exclamation
+Newline
+
+The lexer does NOT decide whether LDR is valid, whether X2 is legal,
+whether 16 fits the encoding, or what opcode LDR has.
+
+A simple Lexer does not need to permanently store tokens.
+tokenize(source) can create a local vector, fill it, and return it.
+
+3.  PARSER Files: include/parser.h src/parser.cpp
+
+Question it answers: “What do these tokens mean together?”
+
+Input: vector
+
+Output: structured statements
+
+The parser does not scan raw characters.
+
+Identifier(“loop”) + Colon can become a label definition.
+
+The tokens for: ADD X1, X2, #10
+
+can become: Instruction mnemonic = ADD operands: Register X1 Register X2
+Immediate 10
+
+For: LDR X1, [X2, #16]
+
+the parser recognizes [X2, #16] as one memory operand.
+
+4.  OPERAND DATA TYPES Possible file later: include/operand.h
+
+These represent operands after parsing.
+
+Examples: Register Immediate MemoryOperand LabelReference Shift
+
+For example, source text X5 begins as text, becomes a token, and can
+eventually be represented as: Register number = 5 width = 64
+
+The encoder should receive that structured information rather than
+repeatedly parsing the string “X5”.
+
+5.  INSTRUCTION File: include/instruction.h
+
+Represents an instruction after parsing.
+
+For: ADD X1, X2, #10
+
+it eventually contains: mnemonic = ADD operands: Register(number=1,
+width=64) Register(number=2, width=64) Immediate(value=10)
+
+Notice the progression: raw source -> tokens -> parsed instruction
+
+6.  STATEMENT Possible file: include/statement.h
+
+Not everything in assembly is an instruction.
+
+Examples: loop: label ADD X1, X2, X3 instruction .text directive
+
+A statement representation lets the parser represent these different
+source constructs. Also, a label and instruction may occur on the same
+physical line: loop: ADD X1, X1, #1
+
+So do not design around “one line = one instruction.”
+
+7.  INSTRUCTION SET / MATCHER / VALIDATOR Files later:
+    include/instruction_set.h src/instruction_set.cpp
+
+Question it answers: “Is this legal AArch64, and which encoding form
+does it use?”
+
+For example: ADD X1, X2, X3 ADD X1, X2, #10
+
+both use ADD, but they use different AArch64 encoding forms.
+
+This layer selects the appropriate form based on the parsed operands and
+checks restrictions/ranges.
+
+The parser might understand ADD X1, X2, #500000 syntactically, while
+this layer can reject it if the selected encoding cannot represent that
+immediate.
+
+8.  ENCODER Files: include/encoder.h src/encoder.cpp
+
+Question it answers: “What 32 bits represent this already-understood
+instruction?”
+
+By this point, the encoder should already know things like: encoding
+form register numbers register widths immediate values shift information
+
+It places those values into the appropriate AArch64 bit fields.
+
+The encoder should NOT be deciding whether “X3” is a register or whether
+ADD is a valid mnemonic.
+
+9.  ASSEMBLER Files: include/assembler.h src/assembler.cpp
+
+This is the high-level coordinator.
+
+Conceptually: read source -> lexer -> parser -> parsed statements ->
+pass 1 -> symbol table -> pass 2 -> matcher/validator -> encoder ->
+output
+
+This is where the two-pass assembly process is coordinated.
+
+10. SYMBOL TABLE
+
+Maps label/symbol names to addresses.
+
+For: B loop ADD X1, X2, X3 loop: SUB X4, X5, X6
+
+Pass 1 discovers the address of loop and stores something like:
+symbolTable[“loop”] = address
+
+Pass 2 uses that address to calculate the branch offset.
+
+11. MAIN File: src/main.cpp
+
+main() should be boring.
+
+Its responsibilities are mainly: - command-line arguments - input/output
+files - invoke Assembler - report errors
+
+It should not contain tokenization, parsing, encoding, or
+symbol-resolution logic.
+
+12. OBJECT WRITER - LATER
+
+Producing raw 32-bit machine instructions is different from producing a
+real Mach-O or ELF .o file.
+
+A real object file contains sections, symbols, relocations, metadata,
+etc.
+
+Do not worry about this yet. First get: assembly -> correct 32-bit
+instructions
+
+COMPLETE EXAMPLE
+
+Source: loop: ADD X1, X2, #10 B loop
+
+Lexer: converts characters into tokens.
+
+Parser: produces: Label(name=loop) Instruction(ADD, Register X1,
+Register X2, Immediate 10) Instruction(B, LabelReference loop)
+
+Pass 1: determines the address of loop.
+
+Matcher/Validator: selects ADD-immediate and unconditional-branch
+encoding forms.
+
+Encoder: creates the 32-bit machine instructions.
+
+WHAT TO WORK ON RIGHT NOW
+
+Only focus on: token.h lexer.h lexer.cpp
+
+First milestone: source string -> Lexer -> vector
+
+Once that works: vector -> Parser -> structured statements
+
+Then continue down the pipeline.
+
+ONE-SENTENCE RESPONSIBILITIES
+
+Token: Stores one lexical piece of source.
+
+Lexer: Converts characters into tokens.
+
+Parser: Converts tokens into structured assembly statements.
+
+Operand structures: Represent registers, immediates, memory operands,
+labels, etc.
+
+Instruction: Represents one parsed instruction and its operands.
+
+Statement: Represents an instruction, label, directive, etc.
+
+Instruction matcher / validator: Selects a legal AArch64 instruction
+form and validates restrictions.
+
+Encoder: Converts a validated instruction into its 32-bit encoding.
+
+Symbol table: Maps labels/symbols to addresses.
+
+Assembler: Coordinates passes, symbols, validation, encoding, and
+output.
+
+main(): Starts the program and invokes the Assembler.
+
+Object writer: Eventually packages machine code into a real object-file
+format.
+
+RULE OF THUMB
+
+Ask: “What kind of information should this component understand?”
+
+Characters? Lexer.
+
+Grammar/syntax? Parser.
+
+Registers/immediates/memory operand structure? Parser and operand
+structures.
+
+Which AArch64 instruction form is legal? Matcher/validator.
+
+Bit positions? Encoder.
+
+Labels, addresses, and passes? Assembler/symbol table.
+
+Whole assembly process? Assembler.
